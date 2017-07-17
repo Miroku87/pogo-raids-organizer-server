@@ -1,0 +1,26 @@
+{
+  "name": "pogo-raids-organizer-server",
+  "version": "0.0.1",
+  "description": "Server side for the pogo-raids-organizer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miroku87/pogo-raids-organizer-server.git"
+  },
+  "author": "Andrea Silvestri",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-exec": "^2.0.0",
+    "grunt-php": "^1.5.1",
+    "grunt-preprocess": "^5.1.0",
+    "matchdep": "^1.0.1"
+  }
+}
