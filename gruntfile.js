@@ -1,7 +1,8 @@
-var
+const
 	HOST_NAME       = 'localhost',
 	SERVER_PORT     = 9000,
-	LIVERELOAD_PORT = 35729;
+	LIVERELOAD_PORT = 35729,
+	MYSQLD_BIN      = 'C:\\xampp\\mysql\\bin\\mysqld.exe';
   
 module.exports = function (grunt)
 {
@@ -12,7 +13,7 @@ module.exports = function (grunt)
 		pkg: grunt.file.readJSON('package.json'),
 		exec: {
 			start_mysql: {
-				command: 'start C:\\xampp\\mysql\\bin\\mysqld.exe'
+				command: 'start ' + MYSQLD_BIN
 				//C:\xampp\mysql\bin\mysqladmin.exe -u root -p shutdown
 				//https://stackoverflow.com/questions/16198327/killing-spawned-processes-when-grunt-exits
 				//https://gruntjs.com/api/grunt.util#grunt.util.spawn
@@ -54,6 +55,44 @@ module.exports = function (grunt)
 			}
 		}
 	});
+
+	function killMySQL() 
+	{
+		grunt.log.writeln('killing mysql_process...');
+		
+		var p = require('child_process').spawn( 'cmd', [ '/C', 'taskkill', '/F', '/IM', 'mysqld.exe' ]);
+		/*p.stdout.on('data', function(line){
+			if(!/^\s+$/.test(line.toString()))
+				console.log(line.toString());
+		});*/
+		p.on('exit', function(line){
+			grunt.log.writeln('killed mysql_process');
+			process.exit(0);
+		});
+		p.on('close', function(line){
+			grunt.log.writeln('killed mysql_process');
+			process.exit(0);
+		});
+	}
 	
-	grunt.registerTask( 'default', [ 'exec:start_mysql', 'php:private' ] );
+	grunt.registerTask('startMySQL', function() 
+	{
+		var mysql_process = require('child_process').spawn( 'cmd', [ '/K', 'start', MYSQLD_BIN ], { killSignal: 'SIGINT' } );
+	
+		var rl = require('readline').createInterface({
+			input: mysql_process.stdin,
+			output: mysql_process.stdout
+		});
+		
+		rl.on('SIGINT', function() {
+			process.emit('SIGINT');
+		});
+		
+		process.on('exit', killMySQL);
+		process.on('SIGINT', killMySQL);
+		process.on('SIGHUP', killMySQL);
+		process.on('SIGBREAK', killMySQL);
+	});
+	
+	grunt.registerTask( 'default', [ 'startMySQL', 'php:private' ] );
 };
