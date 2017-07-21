@@ -35,13 +35,31 @@ if( $action == "get" )
 		else 
 			echo $rm->getNearestRaidsFrom( $coords[0], $coords[1] );
 	}
+	else if ( $what == "raidinfo" )
+	{
+		echo $rm->getRaidInfo( $_GET["raid_id"] );
+	}
+	else if ( $what == "userpartecipates" )
+	{
+		echo $rm->userPartecipatesToRaid( $_GET["user_id"], $_GET["raid_id"] );
+	}
 }
 else if ( $action == "insert" )
 {
 	if( $what == "raidinfo" )
 	{
-		//echo $post->lat.", ".$post->lon.", ".$post->raidLevel.", ".$post->raidStartTime.", ".$post->clientTime.", ".$post->raidCountdown.", ".$post->raidPokemon;
 		echo $rm->insertRaid( $post->lat, $post->lon, $post->raidLevel, $post->clientTime, $post->raidStartTime, $post->raidCountdown, $post->raidPokemon );
+	}
+	else if( $what == "raidpartecipation" )
+	{
+		echo $rm->insertAttendee( $_GET["user_id"], $_GET["raid_id"] );
+	}
+}
+else if ( $action == "remove" )
+{
+	if( $what == "raidpartecipation" )
+	{
+		echo $rm->removeAttendee( $_GET["user_id"], $_GET["raid_id"] );
 	}
 }
 ?>

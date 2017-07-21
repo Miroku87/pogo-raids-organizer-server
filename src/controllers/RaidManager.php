@@ -51,16 +51,80 @@ class RaidManager
 		return "{\"status\":\"ok\", \"raids\":".$raids."}";
 	}
 	
-	public function insertRaid( $lat, $lng, $level, $client_time, $start_time = NULL, $countdown = NULL, $pokemon = NULL )
+	public function getRaidInfo( $raid_id )
 	{
+		$query = "SELECT *, NOW() > raid_start_time AS raid_start_time_elapsed, raid_start_time + INTERVAL 1 HOUR AS raid_end_time FROM raids WHERE raid_id = '".$raid_id."'";
+		
+		try 
+		{
+			$raids = $this->db->doQuery( $query );			
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\", \"raids\":".$raids."}";
+	}
+	
+	public function userPartecipatesToRaid( $user_id, $raid_id )
+	{
+		$query = "SELECT id_fb_user_partecipation FROM partecipations WHERE id_raid_partecipation = '".$raid_id."' AND id_fb_user_partecipation = '".$user_id."';";
+		
+		try 
+		{
+			$results = $this->db->doQuery( $query, false );
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\", \"user_partecipates\":".($results->num_rows == 1 ? "true" : "false")."}";
+	}
+	
+	public function insertAttendee( $user_id, $raid_id )
+	{
+		$query = "INSERT INTO partecipations (id_raid_partecipation, id_fb_user_partecipation) VALUES ('".$raid_id."', '".$user_id."');";
+		
+		try 
+		{
+			$results = $this->db->doQuery( $query, false );
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\"}";
+	}
+	
+	public function removeAttendee( $user_id, $raid_id )
+	{
+		$query = "DELETE FROM partecipations WHERE id_raid_partecipation = '".$raid_id."' AND id_fb_user_partecipation = '".$user_id."';";
+		
+		try 
+		{
+			$results = $this->db->doQuery( $query, false );
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\"}";
+	}
+	
+	public function insertRaid( $lat, $lng, $level, $client_time, $start_time = NULL, $countdown = NULL, $pokemon = NULL )
+	{		
+		$client_datetime   = new DateTime();
+		$client_datetime->setTimestamp((int)$client_time);
+		
         if ( !$start_time && !$countdown )
             return $this->errorJSON( "<span>Almeno un campo tra <code>Orario di Inizio</code> e <code>Minuti Rimanenti</code> deve essere compilato.</span>" );
 
         if ( !$start_time && $countdown && !$pokemon )
             return $this->errorJSON( "<span>Se il raid &egrave; gi&agrave; iniziato inserire il nome del Pok&eacute;mon.</span>" );
-		
-		$client_datetime   = new DateTime();
-		$client_datetime->setTimestamp((int)$client_time);
 		
 		if( !$start_time && $countdown && $client_time )
 		{
@@ -75,6 +139,11 @@ class RaidManager
 			$start_datetime   = new DateTime();
 			$start_datetime->setTimestamp( (int)$client_time );
 			$start_datetime->setTime( $start_time_split[0], $start_time_split[1], 0 );
+			
+			$diff             = $start_datetime->diff($client_datetime);
+			
+			if( $diff->h >= 2 )
+				return $this->errorJSON( "Il Raid non pu&ograve iniziare fra pi&ugrave; di due ore." );
 		
 			if( $client_datetime > $start_datetime )
 				return $this->errorJSON( "Il tempo di inizio del Raid non pu&ograve; essere precedente ad ora. Purtroppo non abbiamo un TARDIS." );
