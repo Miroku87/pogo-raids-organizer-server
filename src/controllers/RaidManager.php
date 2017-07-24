@@ -1,13 +1,21 @@
 <?php
 include_once("./controllers/DatabaseBridge.php");
 
+function compareRaidsRecords( $record_a, $record_b )
+{
+	return (int)$record_a["raid_id"] - (int)$record_b["raid_id"];
+}
+
 class RaidManager 
 {
 	protected $db;
 	
 	public function __construct()
-	{
+	{		
 		$this->db = new DatabaseBridge();
+		
+		if( !isset( $_SESSION["showed_raids"] ) )
+			$_SESSION["showed_raids"] = array();
 	}
 	
 	public function __destruct()
@@ -17,6 +25,20 @@ class RaidManager
 	private function errorJSON( $msg )
 	{
 		return "{\"status\":\"error\", \"message\":\"".$msg."\"}";
+	}
+	
+	public function clearRaidsSession( )
+	{
+		try 
+		{
+			$_SESSION["showed_raids"] = array();
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\"}";
 	}
 	
 	public function getNearestRaidsFrom( $lat, $lng, $dist = 1 )
@@ -41,14 +63,24 @@ class RaidManager
 		
 		try 
 		{
-			$raids = $this->db->doQuery( $query );			
+			$raids = $this->db->doQuery( $query, false );			
 		}
 		catch( Exception $e )
 		{
 			return $this->errorJSON( $e->getMessage() );
 		}
 		
-		return "{\"status\":\"ok\", \"raids\":".$raids."}";
+		$raids_array = iterator_to_array( $raids, true );
+		//echo var_dump($_SESSION["showed_raids"]);
+		
+		$array_diff_1 = array_udiff( $raids_array, $_SESSION["showed_raids"], "compareRaidsRecords" );
+		$array_diff_2 = array_udiff( $_SESSION["showed_raids"], $raids_array, "compareRaidsRecords" );
+		
+		
+		$real_diff    = array_merge( $array_diff_1, $array_diff_2 );
+		$_SESSION["showed_raids"] = $raids_array;
+		
+		return "{\"status\":\"ok\", \"raids\":".json_encode($real_diff)."}";
 	}
 	
 	public function getRaidInfo( $raid_id )
@@ -67,20 +99,20 @@ class RaidManager
 		return "{\"status\":\"ok\", \"raids\":".$raids."}";
 	}
 	
-	public function userPartecipatesToRaid( $user_id, $raid_id )
+	public function getUserPartecipations( $user_id )
 	{
-		$query = "SELECT id_fb_user_partecipation FROM partecipations WHERE id_raid_partecipation = '".$raid_id."' AND id_fb_user_partecipation = '".$user_id."';";
+		$query = "SELECT id_raid_partecipation FROM partecipations WHERE id_fb_user_partecipation = '".$user_id."';";
 		
 		try 
 		{
-			$results = $this->db->doQuery( $query, false );
+			$results = $this->db->doQuery( $query );
 		}
 		catch( Exception $e )
 		{
 			return $this->errorJSON( $e->getMessage() );
 		}
 		
-		return "{\"status\":\"ok\", \"user_partecipates\":".($results->num_rows == 1 ? "true" : "false")."}";
+		return "{\"status\":\"ok\", \"partecipations\":".$results."}";
 	}
 	
 	public function insertAttendee( $user_id, $raid_id )

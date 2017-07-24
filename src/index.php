@@ -1,12 +1,14 @@
 <?php
 ini_set('html_errors', false);
+session_start();
 
 date_default_timezone_set('Europe/Rome');
 
 include("./controllers/RaidManager.php");
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Credentials: true');
 
 //http://blogs.shephertz.com/2014/05/21/how-to-implement-url-routing-in-php/
 
@@ -39,9 +41,9 @@ if( $action == "get" )
 	{
 		echo $rm->getRaidInfo( $_GET["raid_id"] );
 	}
-	else if ( $what == "userpartecipates" )
+	else if ( $what == "userpartecipations" )
 	{
-		echo $rm->userPartecipatesToRaid( $_GET["user_id"], $_GET["raid_id"] );
+		echo $rm->getUserPartecipations( $_GET["user_id"] );
 	}
 }
 else if ( $action == "insert" )
@@ -60,6 +62,13 @@ else if ( $action == "remove" )
 	if( $what == "raidpartecipation" )
 	{
 		echo $rm->removeAttendee( $_GET["user_id"], $_GET["raid_id"] );
+	}
+}
+else if ( $action == "do" )
+{
+	if( $what == "clearraidssession" )
+	{
+		echo $rm->clearRaidsSession( );
 	}
 }
 ?>

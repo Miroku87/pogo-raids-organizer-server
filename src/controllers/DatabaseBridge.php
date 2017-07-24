@@ -24,14 +24,9 @@ class DatabaseBridge
 		return $connection;
 	}
 	
-	private function toJSON( $result )
+	private function toJSON( $arr )
 	{
-		$arr = array();
-		
-		while( $row = $result->fetch_assoc( ) )
-				$arr[] = $row;
-			
-		return json_encode($arr);
+		return json_encode(iterator_to_array( $arr, true ));
 	}
 	
 	public function doQuery( $query, $to_json = true )
