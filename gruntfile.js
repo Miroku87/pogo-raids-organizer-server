@@ -1,8 +1,9 @@
 const
-	HOST_NAME       = 'localhost',
-	SERVER_PORT     = 9000,
-	LIVERELOAD_PORT = 35729,
-	MYSQLD_BIN      = 'C:\\xampp\\mysql\\bin\\mysqld.exe';
+	HOST_NAME        = 'localhost',
+	SERVER_PORT      = 9000,
+	LIVERELOAD_PORT  = 35729,
+	MYSQLD_BIN       = 'C:\\xampp\\mysql\\bin\\mysqld.exe',
+	CHAT_SERVER_PORT = 9300;
   
 module.exports = function (grunt)
 {
@@ -12,11 +13,8 @@ module.exports = function (grunt)
 	{
 		pkg: grunt.file.readJSON('package.json'),
 		exec: {
-			start_mysql: {
-				command: 'start ' + MYSQLD_BIN
-				//C:\xampp\mysql\bin\mysqladmin.exe -u root -p shutdown
-				//https://stackoverflow.com/questions/16198327/killing-spawned-processes-when-grunt-exits
-				//https://gruntjs.com/api/grunt.util#grunt.util.spawn
+			start_chat_server: {
+				command: 'php ./src/controllers/RaidChatServer.php ' + CHAT_SERVER_PORT
 			}
 		},
 		php: {

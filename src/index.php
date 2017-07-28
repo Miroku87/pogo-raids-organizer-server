@@ -4,7 +4,8 @@ session_start();
 
 date_default_timezone_set('Europe/Rome');
 
-include("./controllers/RaidManager.php");
+$realpath = realpath(dirname(__FILE__)) . '/';
+include($realpath."controllers/RaidManager.php");
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: http://localhost:3000');

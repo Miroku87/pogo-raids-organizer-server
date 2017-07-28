@@ -1,6 +1,6 @@
 <?php
-
-include "./config/config.inc.php";
+$realpath = realpath(dirname(__FILE__)) . '/';
+include_once $realpath."../config/config.inc.php";
 
 class DatabaseBridge 
 {
@@ -19,7 +19,7 @@ class DatabaseBridge
 		$connection = new mysqli($DB_DATA["DB_HOST"], $DB_DATA["DB_USER"], $DB_DATA["DB_PASS"], $DB_DATA["DB_NAME"]);
 
 		if ($connection->connect_error)
-			die("ko##{\"message\":\"".$connection->connect_error."\"}");
+			die("{\"status\":\"error\",\"message\":\"".$connection->connect_error."\"}");
 		
 		return $connection;
 	}

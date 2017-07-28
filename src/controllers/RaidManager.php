@@ -1,5 +1,6 @@
 <?php
-include_once("./controllers/DatabaseBridge.php");
+$realpath = realpath(dirname(__FILE__)) . '/';
+include_once($realpath."DatabaseBridge.php");
 
 function compareRaidsRecords( $record_a, $record_b )
 {
@@ -71,7 +72,6 @@ class RaidManager
 		}
 		
 		$raids_array = iterator_to_array( $raids, true );
-		//echo var_dump($_SESSION["showed_raids"]);
 		
 		$array_diff_1 = array_udiff( $raids_array, $_SESSION["showed_raids"], "compareRaidsRecords" );
 		$array_diff_2 = array_udiff( $_SESSION["showed_raids"], $raids_array, "compareRaidsRecords" );
