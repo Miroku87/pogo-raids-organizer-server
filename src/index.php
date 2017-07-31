@@ -42,6 +42,14 @@ if( $action == "get" )
 	{
 		echo $rm->getRaidInfo( $_GET["raid_id"] );
 	}
+	else if ( $what == "raidpartecipations" )
+	{
+		echo $rm->getRaidPartecipations( $_GET["raid_id"] );
+	}
+	else if ( $what == "raidchatentries" )
+	{
+		echo $rm->getRaidChatEntries( $_GET["raid_id"], $_GET["limit"] );
+	}
 	else if ( $what == "userpartecipations" )
 	{
 		echo $rm->getUserPartecipations( $_GET["user_id"] );
@@ -55,7 +63,7 @@ else if ( $action == "insert" )
 	}
 	else if( $what == "raidpartecipation" )
 	{
-		echo $rm->insertAttendee( $_GET["user_id"], $_GET["raid_id"] );
+		echo $rm->insertAttendee( $post->user_id, $post->raid_id, $post->user_picture_url, $post->user_name  );
 	}
 }
 else if ( $action == "remove" )

@@ -99,6 +99,38 @@ class RaidManager
 		return "{\"status\":\"ok\", \"raids\":".$raids."}";
 	}
 	
+	public function getRaidPartecipations( $raid_id )
+	{
+		$query = "SELECT * FROM partecipations WHERE id_raid_partecipation = '".$raid_id."'";
+		
+		try 
+		{
+			$users = $this->db->doQuery( $query );			
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\", \"users\":".$users."}";
+	}
+	
+	public function getRaidChatEntries( $raid_id, $limit )
+	{
+		$query = "SELECT * FROM raids_chat WHERE raid_id_chat = '".$raid_id."' ORDER BY timestamp_chat DESC LIMIT ".$limit;
+		
+		try 
+		{
+			$entries = $this->db->doQuery( $query );			
+		}
+		catch( Exception $e )
+		{
+			return $this->errorJSON( $e->getMessage() );
+		}
+		
+		return "{\"status\":\"ok\", \"entries\":".$entries."}";
+	}
+	
 	public function getUserPartecipations( $user_id )
 	{
 		$query = "SELECT id_raid_partecipation FROM partecipations WHERE id_fb_user_partecipation = '".$user_id."';";
@@ -115,9 +147,9 @@ class RaidManager
 		return "{\"status\":\"ok\", \"partecipations\":".$results."}";
 	}
 	
-	public function insertAttendee( $user_id, $raid_id )
+	public function insertAttendee( $user_id, $raid_id, $user_picture_url, $username )
 	{
-		$query = "INSERT INTO partecipations (id_raid_partecipation, id_fb_user_partecipation) VALUES ('".$raid_id."', '".$user_id."');";
+		$query = "INSERT INTO partecipations (id_raid_partecipation, id_fb_user_partecipation, user_picture_url_partecipation, username_partecipation) VALUES ('".$raid_id."', '".$user_id."', '".$user_picture_url."', '".$username."');";
 		
 		try 
 		{

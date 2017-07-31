@@ -12,7 +12,12 @@ class DatabaseBridge
 	{
 	}
 	
-	private function connect()
+	private function toJSON( $arr )
+	{
+		return json_encode(iterator_to_array( $arr, true ));
+	}
+	
+	public function connect()
 	{
 		global $DB_DATA;
 		
@@ -22,11 +27,6 @@ class DatabaseBridge
 			die("{\"status\":\"error\",\"message\":\"".$connection->connect_error."\"}");
 		
 		return $connection;
-	}
-	
-	private function toJSON( $arr )
-	{
-		return json_encode(iterator_to_array( $arr, true ));
 	}
 	
 	public function doQuery( $query, $to_json = true )

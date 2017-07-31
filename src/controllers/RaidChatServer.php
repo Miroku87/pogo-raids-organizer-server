@@ -12,9 +12,12 @@ include_once $realpath.'DatabaseBridge.php';
 
 function saveChatMessageToDB( $message_data )
 {
-	$db = new DatabaseBridge();
+	$db   = new DatabaseBridge();
+	$conn = $db->connect();
 	
-	$query = "INSERT INTO raids_chat (id_fb_user_chat, username_chat, picture_url_user_chat, message_chat, timestamp_chat) VALUES ('".$message_data->user_id."','".$message_data->username."','".$message_data->user_picture_url."','".$message_data->message."', '".$message_data->date."')";
+	$query = "INSERT INTO raids_chat (raid_id_chat, id_fb_user_chat, username_chat, picture_url_user_chat, message_chat, timestamp_chat) VALUES ('".$message_data->raid_id_chat."','".$message_data->id_fb_user_chat."','".$conn->real_escape_string($message_data->username_chat)."','".$message_data->picture_url_user_chat."','".$conn->real_escape_string($message_data->message_chat)."', '".$message_data->timestamp_chat."')";
+	
+	$conn->close();
 	
 	try 
 	{
@@ -28,6 +31,11 @@ function saveChatMessageToDB( $message_data )
 	
 	echo "{\"status\":\"ok\"}";
 	return true;
+}
+
+function makeSystemMessageJSON( $message )
+{
+	return '{"type":"chatMessage","data":{"username_chat":"Sistema","id_fb_user_chat":0,"picture_url_user_chat":"","message_chat":"'.$message.'","timestamp_chat":'.round(microtime(true) * 1000).'}}';
 }
 
 // when a client sends data to the server
@@ -45,10 +53,7 @@ function wsOnMessage($clientID, $message, $messageLength, $binary)
 	saveChatMessageToDB( json_decode( $message )->data );
 
 	//The speaker is the only person in the room. Don't let them feel lonely.
-	if ( sizeof($Server->wsClients) == 1 )
-		$Server->wsSend($clientID, '{"type":"chatMessage","data":{"username":"Sistema","user_picture_url":"","message":"You\'re the only one in the room.","date":'.round(microtime(true) * 1000).'}}');
-	else
-		//Send the message to everyone but the person who said it
+	if ( sizeof($Server->wsClients) > 1 )
 		foreach ( $Server->wsClients as $id => $client )
 			if ( $id != $clientID )
 				$Server->wsSend($id, $message);
@@ -61,11 +66,11 @@ function wsOnOpen($clientID)
 	$ip = long2ip( $Server->wsClients[$clientID][6] );
 
 	$Server->log( "$ip ($clientID) has connected." );
-
+	
 	//Send a join notice to everyone but the person who joined
-	foreach ( $Server->wsClients as $id => $client )
+	/*foreach ( $Server->wsClients as $id => $client )
 		if ( $id != $clientID )
-			$Server->wsSend($id, "Visitor $clientID ($ip) has joined the room.");
+			$Server->wsSend($id, makeSystemMessageJSON( "Visitor $clientID ($ip) has joined the room." ) );*/
 }
 
 // when a client closes or lost connection
@@ -77,8 +82,8 @@ function wsOnClose($clientID, $status)
 	$Server->log( "$ip ($clientID) has disconnected." );
 
 	//Send a user left notice to everyone in the room
-	foreach ( $Server->wsClients as $id => $client )
-		$Server->wsSend($id, "Visitor $clientID ($ip) has left the room.");
+	/*foreach ( $Server->wsClients as $id => $client )
+		$Server->wsSend($id, makeSystemMessageJSON( "Visitor $clientID ($ip) has left the room." ) );*/
 }
 
 // start the server
